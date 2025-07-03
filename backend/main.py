@@ -39,13 +39,19 @@ app = FastAPI(
     description="AI-powered calendar booking assistant",
     version="2.0.0"
 )
-
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:8501",      # Local Streamlit
-        "https://*.streamlit.app",    # Streamlit Cloud
-        "https://*.onrender.com",     # Your frontend if also on Render
+        "https://*.streamlit.app",    # Streamlit Cloud  
+        "https://*.onrender.com",     # Your frontend on Render
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -665,23 +671,23 @@ async def chat_endpoint(request: ChatRequest):
 
 @app.get("/health")
 async def health_check():
+    """Health check endpoint"""
     return {
-        "status": "healthy",
-        "service": "calendar-booking-api"
+        "status": "healthy", 
+        "calendar_service": calendar_service.service is not None,
+        "timezone": USER_TIMEZONE,
+        "current_time": datetime.now(tz).isoformat()
     }
-@app.get("/api")
-async def api_root():
-    return {
-        "message": "API endpoint working",
-        "docs": "/api/docs"
-    }
-    
+
 @app.get("/")
 async def root():
+    """Root endpoint"""
     return {
         "message": "Calendar Booking Agent API is running!",
         "status": "healthy",
-        "version": "2.0.0"
+        "version": "2.0.0",
+        # "features": ["single_appointments", "recurring_appointments", "availability_checking"],
+        # "docs": "/docs"
     }
 
 @app.get("/instructions")
@@ -735,4 +741,4 @@ if __name__ == "__main__":
     print(f"⏰ Work Hours: {WORK_HOURS_START}:00 - {WORK_HOURS_END}:00")
     print(f"🔑 Service Account: mohit-chat-model@careful-century-464605-b4.iam.gserviceaccount.com")
     print(f"🔄 Features: Single & Recurring Appointments")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000) 

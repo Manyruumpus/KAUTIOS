@@ -1,4 +1,12 @@
 # Logs
+__pycache__/
+*.pyc
+.env
+service-account-key.json
+*.log
+.DS_Store
+
+service-account-key.json
 logs
 *.log
 npm-debug.log*
