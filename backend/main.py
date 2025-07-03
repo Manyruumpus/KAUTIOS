@@ -34,11 +34,19 @@ SEARCH_LIMIT_DAYS = 30
 session_local = threading.local()
 
 # --- FastAPI App Initialization ---
-app = FastAPI(title="Calendar Booking Agent API")
+app = FastAPI(
+    title="Calendar Booking Agent API",
+    description="AI-powered calendar booking assistant",
+    version="2.0.0"
+)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:8501",      # Local Streamlit
+        "https://*.streamlit.app",    # Streamlit Cloud
+        "https://*.fly.dev",          # Your frontend if on Fly.io
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -657,12 +665,10 @@ async def chat_endpoint(request: ChatRequest):
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
     return {
-        "status": "healthy", 
-        "calendar_service": calendar_service.service is not None,
-        "timezone": USER_TIMEZONE,
-        "current_time": datetime.now(tz).isoformat()
+        "status": "healthy",
+        "service": "calendar-booking-api",
+        "version": "2.0.0"
     }
 @app.get("/api")
 async def api_root():
@@ -733,10 +739,3 @@ if __name__ == "__main__":
     print(f"🔑 Service Account: mohit-chat-model@careful-century-464605-b4.iam.gserviceaccount.com")
     print(f"🔄 Features: Single & Recurring Appointments")
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-
-
-if __name__ != "__main__":
-    # This is for Vercel serverless deployment
-    handler = app
-    
