@@ -45,7 +45,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:8501",      # Local Streamlit
         "https://*.streamlit.app",    # Streamlit Cloud
-        "https://*.fly.dev",          # Your frontend if on Fly.io
+        "https://*.onrender.com",     # Your frontend if also on Render
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -667,8 +667,7 @@ async def chat_endpoint(request: ChatRequest):
 async def health_check():
     return {
         "status": "healthy",
-        "service": "calendar-booking-api",
-        "version": "2.0.0"
+        "service": "calendar-booking-api"
     }
 @app.get("/api")
 async def api_root():
@@ -679,12 +678,10 @@ async def api_root():
     
 @app.get("/")
 async def root():
-    """Root endpoint"""
     return {
         "message": "Calendar Booking Agent API is running!",
-        "version": "2.0.0",
-        "features": ["single_appointments", "recurring_appointments", "availability_checking"],
-        "docs": "/docs"
+        "status": "healthy",
+        "version": "2.0.0"
     }
 
 @app.get("/instructions")
