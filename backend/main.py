@@ -8,6 +8,7 @@ import pytz
 import dateparser
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
+from langchain_core.cache import BaseCache
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.tools import tool
 from langgraph.graph import StateGraph, END
@@ -34,25 +35,11 @@ SEARCH_LIMIT_DAYS = 30
 session_local = threading.local()
 
 # --- FastAPI App Initialization ---
-app = FastAPI(
-    title="Calendar Booking Agent API",
-    description="AI-powered calendar booking assistant",
-    version="2.0.0"
-)
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
+app = FastAPI(title="Calendar Booking Agent API")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:8501",      # Local Streamlit
-        "https://*.streamlit.app",    # Streamlit Cloud  
-        "https://*.onrender.com",     # Your frontend on Render
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -300,7 +287,7 @@ def generate_recurring_dates(start_date: datetime, end_date: datetime, weekdays:
     
     return events
 
-# --- Agent Tools (Updated to include recurring appointments) ---
+# --- Agent Tools ---
 @tool
 def find_next_available_slot(duration_minutes: int = 60) -> str:
     """
@@ -535,6 +522,10 @@ def validate_calendar_setup(calendar_id: str = None) -> str:
         return f"❌ Cannot access calendar '{calendar_id}'. Please ensure you've granted access to: mohit-chat-model@careful-century-464605-b4.iam.gserviceaccount.com with 'Make changes to events' permission."
 
 # --- LangGraph Agent Setup ---
+# Fix for Pydantic v2 compatibility
+ChatGoogleGenerativeAI.BaseCache = BaseCache
+ChatGoogleGenerativeAI.model_rebuild()
+
 llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-flash", 
     temperature=0.2, 
@@ -613,6 +604,25 @@ initial_messages = [AIMessage(content=system_prompt)]
 sessions = {}
 
 # --- API Endpoints ---
+@app.get("/")
+async def root():
+    return {
+        "message": "Calendar Booking Agent API is running!",
+        "version": "2.0.0",
+        "features": ["single_appointments", "recurring_appointments", "availability_checking"],
+        "status": "healthy"
+    }
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "healthy", 
+        "calendar_service": calendar_service.service is not None,
+        "timezone": USER_TIMEZONE,
+        "current_time": datetime.now(tz).isoformat()
+    }
+
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
     session_id = request.session_id
@@ -669,27 +679,6 @@ async def chat_endpoint(request: ChatRequest):
         print(f"Error in chat endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {
-        "status": "healthy", 
-        "calendar_service": calendar_service.service is not None,
-        "timezone": USER_TIMEZONE,
-        "current_time": datetime.now(tz).isoformat()
-    }
-
-@app.get("/")
-async def root():
-    """Root endpoint"""
-    return {
-        "message": "Calendar Booking Agent API is running!",
-        "status": "healthy",
-        "version": "2.0.0",
-        # "features": ["single_appointments", "recurring_appointments", "availability_checking"],
-        # "docs": "/docs"
-    }
-
 @app.get("/instructions")
 async def get_instructions():
     """Endpoint to provide setup instructions for new users"""
@@ -741,4 +730,4 @@ if __name__ == "__main__":
     print(f"⏰ Work Hours: {WORK_HOURS_START}:00 - {WORK_HOURS_END}:00")
     print(f"🔑 Service Account: mohit-chat-model@careful-century-464605-b4.iam.gserviceaccount.com")
     print(f"🔄 Features: Single & Recurring Appointments")
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="0.0.0.0", port=8000)
