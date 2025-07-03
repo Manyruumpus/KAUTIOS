@@ -74,7 +74,7 @@ if "messages" not in st.session_state:
 if "session_id" not in st.session_state:
     st.session_state.session_id = str(uuid.uuid4())
 if "backend_url" not in st.session_state:
-    st.session_state.backend_url = 'https://ai-agent-usi-ng-python-c9t7.vercel.app'
+    st.session_state.backend_url = 'https://kautios.onrender.com'
 if "user_calendar_id" not in st.session_state:
     st.session_state.user_calendar_id = "primary"
 
