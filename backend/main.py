@@ -88,7 +88,15 @@ class GoogleCalendarService:
             elif os.getenv('GOOGLE_SERVICE_ACCOUNT_JSON'):
                 creds_json_str = os.getenv('GOOGLE_SERVICE_ACCOUNT_JSON')
                 creds_info = json.loads(creds_json_str)
-                creds_info['private_key'] = codecs.decode(creds_info['private_key'], 'unicode_escape')
+                
+                # Fix private key formatting - ensure proper newlines
+                if 'private_key' in creds_info:
+                    # Replace \\n with actual newlines if needed
+                    private_key = creds_info['private_key']
+                    if '\\n' in private_key:
+                        private_key = private_key.replace('\\n', '\n')
+                    creds_info['private_key'] = private_key
+                
                 self.credentials = Credentials.from_service_account_info(
                     creds_info, scopes=['https://www.googleapis.com/auth/calendar']
                 )
@@ -100,7 +108,7 @@ class GoogleCalendarService:
                 print("⚠️ Warning: Google Calendar credentials not found.")
         except Exception as e:
             print(f"❌ Error initializing Google Calendar service: {e}")
-    
+  
     def check_availability(self, start_time_utc: datetime, end_time_utc: datetime, calendar_id: str):
         """Check if a time slot is available in the specified calendar"""
         if not self.service: 
@@ -534,7 +542,7 @@ def validate_calendar_setup(calendar_id: str = None) -> str:
     else:
         return f"❌ Cannot access calendar '{calendar_id}'. Please ensure you've granted access to: mohit-chat-model@careful-century-464605-b4.iam.gserviceaccount.com with 'Make changes to events' permission."
 
-ChatGoogleGenerativeAI.model_rebuild()
+# ChatGoogleGenerativeAI.model_rebuild()
 # --- LangGraph Agent Setup ---
 llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-flash", 
@@ -621,7 +629,7 @@ async def chat_endpoint(request: ChatRequest):
     
     # Set the calendar ID for this request context
     set_current_calendar_id(calendar_id)
-    
+     
     # Initialize session if it doesn't exist
     if session_id not in sessions: 
         sessions[session_id] = {
@@ -742,4 +750,4 @@ if __name__ == "__main__":
     print(f"⏰ Work Hours: {WORK_HOURS_START}:00 - {WORK_HOURS_END}:00")
     print(f"🔑 Service Account: mohit-chat-model@careful-century-464605-b4.iam.gserviceaccount.com")
     print(f"🔄 Features: Single & Recurring Appointments")
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="127.0.0.1", port=8000)  # Instead of 0.0.0.0
