@@ -534,6 +534,7 @@ def validate_calendar_setup(calendar_id: str = None) -> str:
     else:
         return f"❌ Cannot access calendar '{calendar_id}'. Please ensure you've granted access to: mohit-chat-model@careful-century-464605-b4.iam.gserviceaccount.com with 'Make changes to events' permission."
 
+ChatGoogleGenerativeAI.model_rebuild()
 # --- LangGraph Agent Setup ---
 llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-flash", 
