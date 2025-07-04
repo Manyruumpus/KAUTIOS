@@ -6,7 +6,7 @@ import uuid
 
 # Configure page 
 st.set_page_config(
-    page_title="Calendar Booking Assistant",
+    page_title="KAUTIOS: Calendar Managing Assistant",
     page_icon="📅",
     layout="wide",
     initial_sidebar_state="expanded"
