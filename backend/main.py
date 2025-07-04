@@ -26,8 +26,8 @@ load_dotenv()
 # --- Configuration ---
 USER_TIMEZONE = "Asia/Kolkata"
 tz = pytz.timezone(USER_TIMEZONE)
-WORK_HOURS_START = 9
-WORK_HOURS_END = 17
+WORK_HOURS_START = 0
+WORK_HOURS_END = 23
 SEARCH_LIMIT_DAYS = 30
 
 # --- Thread-local storage for session-specific data ---
