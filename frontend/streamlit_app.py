@@ -106,7 +106,7 @@ with st.sidebar:
         """)
     
     # Backend URL configuration
-    backend_url = "http://localhost:8000"
+    backend_url ="https://kautios.onrender.com" 
     st.session_state.backend_url = backend_url
     
     # Test connection
